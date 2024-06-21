@@ -1,0 +1,11 @@
+---
+- name: Install logrotate
+  apt:
+    name: logrotate
+    state: present
+
+- name: Configure logrotate main
+  template:
+    src: rsyslog.j2
+    dest: /etc/logrotate.d/rsyslog
+

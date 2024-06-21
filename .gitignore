@@ -1,0 +1,4 @@
+*.retry
+vault-password.txt
+.venv
+.vscode

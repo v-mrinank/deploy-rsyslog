@@ -1,0 +1,24 @@
+# Use the built-in imfile module for file-based input
+$ModLoad imfile
+
+# # Define input rules for PostgreSQL logs
+# $InputFileName /var/log/postgresql/*.csv
+# $InputFileTag postgresql-csv:
+# $InputFileStateFile stat-postgresql-csv
+# $InputFileSeverity info
+# $InputFileFacility local0
+# $InputRunFileMonitor
+
+# $InputFileName /var/log/postgresql/patroni.log
+# $InputFileTag postgresql-patroni:
+# $InputFileStateFile stat-postgresql-patroni
+# $InputFileSeverity info
+# $InputFileFacility local0
+# $InputRunFileMonitor
+
+$InputFileName /var/log/postgresql/pgbouncer.log
+$InputFileTag postgresql-pgbouncer:
+$InputFileStateFile stat-postgresql-pgbouncer
+$InputFileSeverity info
+$InputFileFacility local0
+$InputRunFileMonitor

@@ -1,0 +1,9 @@
+
+module(load="imfile" mode="inode")
+# Define the log file path
+$InputFileName /var/log/rabbitmq/rabbit-1@{{ inventory_hostname }}.log
+$InputFileTag rabbitmq:
+$InputFileStateFile stat-rabbitmq
+$InputFileSeverity info
+$InputFileFacility local7
+$InputRunFileMonitor

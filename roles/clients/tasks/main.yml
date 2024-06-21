@@ -1,0 +1,7 @@
+---
+- name: Set timezone to Asia/Kolkata
+  timezone:
+    name: Asia/Kolkata
+
+- import_tasks: chrony.yml
+# - import_tasks: rsyslog.yml

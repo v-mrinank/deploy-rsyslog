@@ -1,0 +1,50 @@
+---
+
+- name: Set timezone to Asia/Kolkata
+  timezone:
+    name: Asia/Kolkata
+
+- name: Update hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Update /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.1\.1'
+    line: "127.0.1.1 {{ inventory_hostname }}"
+
+- name: Add servers to /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ hostvars[item]['other_ip'] }} {{ item }}"
+    state: present
+  loop: "{{ groups[group_names[0]] }}"
+
+- name: Install rsyslog
+  apt:
+    name: rsyslog
+    state: present
+
+- name: Configure rsyslog
+  template:
+    src: rsyslog.conf.j2
+    dest: /etc/rsyslog.conf
+  notify: Restart rsyslog
+
+- name: Comment out default syslog file logging in rsyslog
+  lineinfile:
+    path: /etc/rsyslog.d/50-default.conf
+    regexp: '^\s*(\*\.\*)(.*)$'
+    line: '# \1\2'
+    backrefs: true
+  notify:
+    - Restart rsyslog
+
+- name: Allow TCP port 514 in the firewall
+  ufw:
+    rule: allow
+    port: '{{ item }}'
+    proto: tcp
+  loop:
+    - '514'

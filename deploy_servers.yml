@@ -1,0 +1,11 @@
+---
+- name: Install and Configure Central Logging on Web servers
+  hosts: log_servers
+  serial: 1
+  max_fail_percentage: 1
+  become: true
+  become_method: sudo
+  roles:
+    - role: rsyslog
+    - role: keepalived
+    - role: logrotate

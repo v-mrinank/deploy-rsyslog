@@ -1,0 +1,31 @@
+vrrp_script check_rsyslog  {
+    script "/opt/keepalived/check_rsyslog.sh"
+    interval 1
+    fall 1
+    rise 1
+    weight 50
+}
+vrrp_instance rsyslog{
+    state MASTER
+    interface eno2
+    virtual_router_id 132
+    priority {{ hostvars[inventory_hostname]['keepalived_priority'] }}
+    advert_int 1
+    authentication{
+        auth_type PASS
+        auth_pass qwer@4321
+    }
+    virtual_ipaddress{
+        {{ keepalived_bind_ip1 }} dev eno1
+        {{ keepalived_bind_ip2 }} dev eno1
+    }
+    track_script {
+        check_rsyslog 
+    }
+    unicast_src_ip {{ hostvars[inventory_hostname]['other_ip'] }}
+    unicast_peer {
+{% for host in groups[group_names[0]] | reject('eq', inventory_hostname) %}
+        {{ hostvars[host]['other_ip'] }}
+{% endfor %}
+    }
+}

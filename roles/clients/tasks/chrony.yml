@@ -1,0 +1,42 @@
+---
+- name: Ensure Chrony is installed
+  apt:
+    name: chrony
+    state: present
+    update_cache: yes
+
+- name: Configure Chrony
+  template:
+    src: chrony.conf.j2
+    dest: /etc/chrony/chrony.conf
+
+- name: Restart Chrony
+  systemd:
+    name: chronyd
+    state: restarted
+    enabled: true
+
+- name: Wait for Chrony to sync
+  command: chronyc waitsync
+  changed_when: false
+  failed_when: false
+  async: 300
+  poll: 10
+
+- name: Check Chrony sources
+  command: chronyc sources
+  register: chrony_sources
+  changed_when: false
+
+- name: Display Chrony sources
+  debug:
+    msg: "Chrony sources:\n{{ chrony_sources.stdout }}"
+
+- name: Check Chrony tracking
+  command: chronyc tracking
+  register: chrony_tracking
+  changed_when: false
+
+- name: Display Chrony tracking
+  debug:
+    msg: "Chrony tracking:\n{{ chrony_tracking.stdout }}"

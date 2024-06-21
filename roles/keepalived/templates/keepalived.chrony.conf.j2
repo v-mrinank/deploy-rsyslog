@@ -1,0 +1,30 @@
+vrrp_script check_chrony  {
+    script "/opt/keepalived/check_chrony.sh"
+    interval 60
+    fall 1
+    rise 1
+    weight 50
+}
+vrrp_instance chrony{
+    state MASTER
+    interface eno2
+    virtual_router_id 131
+    priority {{ hostvars[inventory_hostname]['keepalived_priority'] }}
+    advert_int 1
+    authentication{
+        auth_type PASS
+        auth_pass qwer@4321
+    }
+    virtual_ipaddress{
+        {{ keepalived_bind_ntp_ip }} dev eno1
+    }
+    track_script {
+        check_chrony
+    }
+    unicast_src_ip {{ hostvars[inventory_hostname]['other_ip'] }}
+    unicast_peer {
+{% for host in groups[group_names[0]] | reject('eq', inventory_hostname) %}
+        {{ hostvars[host]['other_ip'] }}
+{% endfor %}
+    }
+}

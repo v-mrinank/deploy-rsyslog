@@ -1,0 +1,27 @@
+---
+- name: Set timezone to Asia/Kolkata
+  timezone:
+    name: Asia/Kolkata
+
+- name: Update hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Install Chrony
+  apt:
+    name:
+      - chrony
+    state: present
+    update_cache: yes
+
+- name: Configure Chrony
+  template:
+    src: chrony.conf.j2
+    dest: /etc/chrony/chrony.conf
+  notify: Restart Chrony
+
+- name: Allow NTP through UFW
+  ufw:
+    rule: allow
+    port: "{{ ntp_port }}"
+    proto: udp

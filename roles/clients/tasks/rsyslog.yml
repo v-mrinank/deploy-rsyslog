@@ -1,0 +1,70 @@
+---
+- name: Install rsyslog
+  apt:
+    name: rsyslog
+    state: present
+
+- name: Ensure /etc/rsyslog.d directory exists
+  file:
+    path: "/etc/rsyslog.d"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Delete old remote log sending configs
+  file:
+    state: absent
+    path: /etc/rsyslog.d/{{ item }}
+  loop:
+    - '51-remote.conf'
+    - '51-rabbitmq.conf'
+
+- name: Configure rsyslog
+  template:
+    src: rsyslog.conf.j2
+    dest: /etc/rsyslog.d/01-remote.conf
+
+- name: Update main rsyslog conf to include our custom configuration
+  lineinfile:
+    path: /etc/rsyslog.conf
+    line: "$IncludeConfig /etc/rsyslog.d/*.conf"
+
+- name: Gather package facts
+  package_facts:
+    manager: auto
+
+- name: Check if RabbitMQ server is installed
+  set_fact:
+    rabbitmq_installed: "{{ 'rabbitmq-server' in ansible_facts.packages }}"
+
+- name: Debug the result
+  debug:
+    msg: "RabbitMQ server is {{ 'installed' if rabbitmq_installed else 'not installed' }}"
+
+- name: Configure rsyslog for rabbitmq
+  template:
+    src: rsyslog.rabbitmq.conf.j2
+    dest: /etc/rsyslog.d/49-rabbitmq.conf
+  notify: Restart rsyslog
+  when: rabbitmq_installed
+
+- name: Check if patroni is installed
+  set_fact:
+    patroni_installed: "{{ 'postgresql' in ansible_facts.packages }}"
+
+- name: Debug the result
+  debug:
+    msg: "Patroni is {{ 'installed' if patroni_installed else 'not installed' }}"
+
+- name: Configure rsyslog for patroni, pgbouncer and postgresql
+  template:
+    src: rsyslog.postgresql.conf.j2
+    dest: /etc/rsyslog.d/49-pgsql.conf
+  notify: Restart rsyslog
+  when: patroni_installed
+
+- name: Restart rsyslog
+  systemd:
+    name: rsyslog
+    state: restarted

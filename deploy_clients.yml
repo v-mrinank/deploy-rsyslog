@@ -1,0 +1,8 @@
+---
+- name: Install and Configure Central Logging on Web servers
+  hosts: all:!log_servers
+  max_fail_percentage: 1
+  become: true
+  become_method: sudo
+  roles:
+    - role: clients

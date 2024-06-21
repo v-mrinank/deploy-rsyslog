@@ -1,0 +1,50 @@
+---
+- name: Install Keepalived
+  apt:
+    name: keepalived
+    state: present
+
+- name: Configure Keepalived
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+
+- name: Ensure /etc/keepalived/conf.d/ directory exists
+  file:
+    path: /etc/keepalived/conf.d/
+    state: directory
+    mode: 0755
+
+- name: Configure Keepalived for rsyslog
+  template:
+    src: keepalived.rsyslog.conf.j2
+    dest: /etc/keepalived/conf.d/vrrp_rsyslog.conf
+
+- name: Configure Keepalived for chrony
+  template:
+    src: keepalived.chrony.conf.j2
+    dest: /etc/keepalived/conf.d/vrrp_chrony.conf
+
+- name: Ensure /opt/keepalived directory exists
+  file:
+    path: /opt/keepalived
+    state: directory
+    mode: 0755
+
+- name: Copy keepalived check script for rsyslog
+  copy:
+    src: check_rsyslog.sh
+    dest: /opt/keepalived/check_rsyslog.sh
+    mode: 0755
+
+- name: Copy keepalived check script for chrony
+  copy:
+    src: check_chrony.sh
+    dest: /opt/keepalived/check_chrony.sh
+    mode: 0755
+
+- name: Restart Keepalived service
+  service:
+    name: keepalived
+    state: restarted
+    enabled: yes

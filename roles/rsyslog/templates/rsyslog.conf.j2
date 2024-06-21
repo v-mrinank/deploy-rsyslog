@@ -1,0 +1,30 @@
+module(load="imuxsock") # provides support for local system logging
+module(load="imklog" permitnonkernelfacility="on")
+
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+
+$FileOwner syslog
+$FileGroup adm
+$FileCreateMode 0640
+$DirCreateMode 0755
+$Umask 0022
+$PrivDropToUser syslog
+$PrivDropToGroup syslog
+
+$WorkDirectory /var/spool/rsyslog
+
+module(load="imtcp")
+input(type="imtcp" port="514")
+
+template (name="remoteLogsFile" type="string" string="/var/log/%PROGRAMNAME%.log")
+
+{% for host in groups[group_names[0]] | reject('eq', inventory_hostname) %}
+if ($fromhost-ip != "{{ hostvars[host]['other_ip'] }}") then {
+        action(type="omfwd" protocol="tcp" target="{{ hostvars[host]['other_ip'] }}" port="514" queue.type="LinkedList" queue.filename="Forward1" queue.saveOnShutdown="on" )
+}
+{% endfor %}
+
+
+$IncludeConfig /etc/rsyslog.d/*.conf
+
+action(type="omfile" dynaFile="remoteLogsFile")

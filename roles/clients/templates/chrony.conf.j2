@@ -1,0 +1,5 @@
+pool {{ ntp_ip | default('2.ubuntu.pool.ntp.org') }} iburst
+driftfile /var/lib/chrony/drift
+makestep 1.0 3
+rtcsync
+local stratum 10
